@@ -42,6 +42,9 @@ class WorkoutViewModel(private val repository: FitnessRepository) : ViewModel() 
             _state.update {
                 it.copy(
                     dayPlan = plan,
+                    // Only the completed *count* is persisted, so a resumed session
+                    // assumes the first N exercises were the ones done; it can't
+                    // recover exactly which ones if they weren't checked off in order.
                     completed = if (existing != null && plan != null) {
                         (0 until existing.completedExercises).toSet()
                     } else emptySet(),
