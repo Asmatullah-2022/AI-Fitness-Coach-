@@ -27,8 +27,11 @@ class FitnessRepository(
     suspend fun getProfile(): UserProfile? = profileDao.getProfile()?.toDomain()
 
     suspend fun saveProfile(profile: UserProfile) {
+        val existing = profileDao.getProfile()
         profileDao.upsert(profile.toEntity())
-        weightDao.insert(WeightEntryEntity(epochDay = LocalDate.now().toEpochDay(), weightKg = profile.weightKg))
+        if (existing == null || existing.weightKg != profile.weightKg) {
+            weightDao.insert(WeightEntryEntity(epochDay = LocalDate.now().toEpochDay(), weightKg = profile.weightKg))
+        }
     }
 
     fun observeHistory(): Flow<List<WorkoutHistoryEntry>> =
@@ -44,9 +47,7 @@ class FitnessRepository(
         completedExercises: Int,
         durationMinutes: Int
     ) {
-        val existing = sessionDao.getForDay(date.toEpochDay())
         val entity = WorkoutSessionEntity(
-            id = existing?.id ?: 0,
             epochDay = date.toEpochDay(),
             dayFocus = dayFocus,
             totalExercises = totalExercises,
@@ -91,7 +92,7 @@ private fun UserProfile.toEntity() = UserProfileEntity(
 )
 
 private fun WorkoutSessionEntity.toDomain() = WorkoutHistoryEntry(
-    id = id,
+    id = epochDay,
     date = LocalDate.ofEpochDay(epochDay),
     dayFocus = dayFocus,
     totalExercises = totalExercises,

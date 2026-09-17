@@ -12,7 +12,7 @@ interface WeightEntryDao {
     @Insert
     suspend fun insert(entry: WeightEntryEntity): Long
 
-    @Query("SELECT * FROM weight_entries ORDER BY epochDay ASC")
+    @Query("SELECT * FROM weight_entries ORDER BY epochDay ASC, id ASC")
     fun observeAll(): Flow<List<WeightEntryEntity>>
 
     @Query("DELETE FROM weight_entries")
